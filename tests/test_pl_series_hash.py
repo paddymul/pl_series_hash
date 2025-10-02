@@ -1,5 +1,5 @@
 import polars as pl
-from pl_series_hash1 import hash_xx
+from pl_series_hash import hash_xx
 
 
 U64_5_3_20_HASH = 6142793559755377588
