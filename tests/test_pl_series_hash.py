@@ -151,24 +151,23 @@ def test_hash_str():
 
     assert not hash_1 == hash_2
 
+def test_hash_str2():
+    df_1 = pl.DataFrame({"english": ["this", "is"]})
+    result_1 = df_1.select(hash_col=hash_xx("english"))
 
-# def test_hash_str2():
-#     df_1 = pl.DataFrame({"english": ["this", "is"]})
-#     result_1 = df_1.select(hash_col=hash_xx("english"))
+    hash_1 = 10264270744541082640
+    expected_df1 = pl.DataFrame({"hash_col": [hash_1]})
 
-#     hash_1 = 10264270744541082640
-#     expected_df1 = pl.DataFrame({"hash_col": [hash_1]})
+    assert result_1.equals(expected_df1)
 
-#     assert result_1.equals(expected_df1)
+    # Note the concatenation of this-is
+    df_2 = pl.DataFrame({"english": ["this|is"]})
+    result_2 = df_2.select(hash_col=hash_xx("english"))
 
-#     # Note the concatenation of this-is
-#     df_2 = pl.DataFrame({"english": ["this|is"]})
-#     result_2 = df_2.select(hash_col=hash_xx("english"))
+    hash_2 = 12926212925376531029
+    expected_df2 = pl.DataFrame({"hash_col": [hash_2]})
 
-#     hash_2 = 12926212925376531029
-#     expected_df2 = pl.DataFrame({"hash_col": [hash_2]})
+    assert result_2.equals(expected_df2)
 
-#     assert result_2.equals(expected_df2)
-
-#     # df_1['english'] and df_2['english'] should have different hash values
-#     assert not hash_1 == hash_2
+    # df_1['english'] and df_2['english'] should have different hash values
+    assert not hash_1 == hash_2
