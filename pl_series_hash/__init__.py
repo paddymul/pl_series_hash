@@ -21,5 +21,3 @@ def hash_xx(expr: IntoExprColumn) -> pl.Expr:
         function_name="hash_series",
         is_elementwise=True,
     )
-
-
