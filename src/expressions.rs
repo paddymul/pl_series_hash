@@ -108,7 +108,7 @@ fn hash_bool_chunked(cb: &BooleanChunked) -> u64 {
 
 
 #[polars_expr(output_type=UInt64)]
-fn hash_i64_series(inputs: &[Series]) -> PolarsResult<Series> {
+fn hash_series(inputs: &[Series]) -> PolarsResult<Series> {
     let chunks = &inputs[0];
 
     if let Ok(ichunks) = chunks.i64() {

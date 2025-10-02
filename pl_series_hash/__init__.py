@@ -18,7 +18,7 @@ def hash_xx(expr: IntoExprColumn) -> pl.Expr:
     return register_plugin_function(
         args=[expr],
         plugin_path=LIB,
-        function_name="hash_i64_series",
+        function_name="hash_series",
         is_elementwise=True,
     )
 
