@@ -1,30 +1,33 @@
 #![allow(clippy::unused_unit)]
+use std::hash::Hasher;
+
 use polars::prelude::*;
 use pyo3_polars::derive::polars_expr;
-use std::hash::Hasher;
 use twox_hash::XxHash64;
 
-const SEED: u64  = 1234;
-fn hardcode_bytes(i:u8) -> [u8; 1] {
+const SEED: u64 = 1234;
+fn hardcode_bytes(i: u8) -> [u8; 1] {
     i.to_le_bytes()
 }
 
 //according to my tests these are both unrepresentable utf8
 // characters, which means they can't come up in a string which should prohibit hash collisions.
-const STRING_SEPERATOR:&[u8; 2]= &128u16.to_le_bytes();
-const NAN_SEPERATOR:&[u8; 2]= &129u16.to_le_bytes();
+const STRING_SEPERATOR: &[u8; 2] = &128u16.to_le_bytes();
+const NAN_SEPERATOR: &[u8; 2] = &129u16.to_le_bytes();
 
 macro_rules! hash_func {
     ($a:ident, $b:ty, $type_num:expr) => {
         fn $a(cb: $b) -> u64 {
             let mut hasher = XxHash64::with_seed(SEED);
             hasher.write(&hardcode_bytes($type_num));
-            let mut count:u64 = 0;
+            let mut count: u64 = 0;
             for val in cb.iter() {
                 count += 1;
                 match val {
-                    Some(val) => {hasher.write(&val.to_le_bytes())}
-                    _ => {hasher.write(NAN_SEPERATOR);}
+                    Some(val) => hasher.write(&val.to_le_bytes()),
+                    _ => {
+                        hasher.write(NAN_SEPERATOR);
+                    },
                 }
                 hasher.write(&count.to_le_bytes());
             }
@@ -36,8 +39,8 @@ macro_rules! hash_func {
 // non macro implementation for reference
 // it's of course easier to reason about this in a non macro context
 
-// check macro expansion with 
-// cargo rustc --profile=check -- -Zunpretty=expanded    
+// check macro expansion with
+// cargo rustc --profile=check -- -Zunpretty=expanded
 // fn hash_i64_chunked(cb: &Int64Chunked) -> u64 {
 //     let mut hasher = XxHash64::with_seed(SEED);
 //     hasher.write(&hardcode_bytes(1));
@@ -64,22 +67,21 @@ hash_func!(hash_u8_chunked, &UInt8Chunked, 8);
 hash_func!(hash_f64_chunked, &Float64Chunked, 9);
 hash_func!(hash_f32_chunked, &Float32Chunked, 10);
 
-
 fn hash_string_chunked(cb: &StringChunked) -> u64 {
     let mut hasher = XxHash64::with_seed(SEED);
     hasher.write(&hardcode_bytes(11));
-    let mut count:u64 = 0;
+    let mut count: u64 = 0;
     for val in cb.iter() {
         count += 1;
         match val {
             Some(val) => {
-                hasher.write(&val.as_bytes());
+                hasher.write(val.as_bytes());
                 hasher.write(STRING_SEPERATOR);
                 hasher.write(&count.to_le_bytes());
-            }
-            _ => {hasher.write(NAN_SEPERATOR);
-
-            }
+            },
+            _ => {
+                hasher.write(NAN_SEPERATOR);
+            },
         }
     }
     //find_invalid_utf8();
@@ -89,23 +91,25 @@ fn hash_string_chunked(cb: &StringChunked) -> u64 {
 fn hash_bool_chunked(cb: &BooleanChunked) -> u64 {
     let mut hasher = XxHash64::with_seed(SEED);
     hasher.write(&hardcode_bytes(12));
-    let mut count:u64 = 0;
+    let mut count: u64 = 0;
     for val in cb.iter() {
         count += 1;
         match val {
             Some(val) => {
                 if val {
-                    hasher.write(&(1u8).to_le_bytes())}
-                else {
-                    hasher.write(&(0u8).to_le_bytes())}
-                },
-            _ => {hasher.write(NAN_SEPERATOR);}
+                    hasher.write(&(1u8).to_le_bytes())
+                } else {
+                    hasher.write(&(0u8).to_le_bytes())
+                }
+            },
+            _ => {
+                hasher.write(NAN_SEPERATOR);
+            },
         }
         hasher.write(&count.to_le_bytes());
     }
     hasher.finish()
 }
-
 
 #[polars_expr(output_type=UInt64)]
 fn hash_series(inputs: &[Series]) -> PolarsResult<Series> {
@@ -160,8 +164,9 @@ fn hash_series(inputs: &[Series]) -> PolarsResult<Series> {
         return Ok(Series::new("hash".into(), vec![hash]));
     }
 
-
-    return Err(PolarsError::ComputeError("couldn't compute hash for column type".into()));
+    Err(PolarsError::ComputeError(
+        "couldn't compute hash for column type".into(),
+    ))
 }
 
 /*
@@ -201,4 +206,3 @@ fn find_invalid_utf8() -> u64 {
     return 1u64;
 }
 */
-
