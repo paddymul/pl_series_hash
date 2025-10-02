@@ -16,6 +16,7 @@ def test_hash_u64():
 
     assert result_1.equals(expected_df1)
 
+    
 def test_hash_i64_same_u64():
     # verify that the exact same values as a different type result in a different hash
     
@@ -45,6 +46,29 @@ def test_hash_i64():
 
     assert result_1.equals(expected_df1)
 
+def test_hash_u64_two_chunks():
+
+    s = pl.Series([5, 3], dtype=pl.UInt64)
+
+    s_two_chunks = s.append(pl.Series([20], dtype=pl.UInt64))
+
+    assert len(s_two_chunks.get_chunks()) == 2
+     
+    df_1 = pl.DataFrame({"u64": s_two_chunks})
+
+    result_1 = df_1.select(hash_col=hash_xx("u64"))
+
+    expected_df1 = pl.DataFrame(
+        {
+            "hash_col": [U64_5_3_20_HASH]})
+
+    assert result_1.equals(expected_df1)
+
+    assert len(df_1['u64'].get_chunks()) == 2
+
+     
+
+    
 def test_hash_i32():
     df_1 = pl.DataFrame({
             "i32": pl.Series([-5, 3, 20], dtype=pl.Int32)})
