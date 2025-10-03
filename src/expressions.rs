@@ -67,6 +67,8 @@ hash_func!(hash_u8_chunked, &UInt8Chunked, 8);
 hash_func!(hash_f64_chunked, &Float64Chunked, 9);
 hash_func!(hash_f32_chunked, &Float32Chunked, 10);
 
+
+
 fn hash_string_chunked(cb: &StringChunked) -> u64 {
     let mut hasher = XxHash64::with_seed(SEED);
     hasher.write(&hardcode_bytes(11));
@@ -110,6 +112,12 @@ fn hash_bool_chunked(cb: &BooleanChunked) -> u64 {
     }
     hasher.finish()
 }
+hash_func!(hash_datetime_chunked, &DatetimeChunked, 13);
+hash_func!(hash_duration_chunked, &DurationChunked, 14);
+hash_func!(hash_time_chunked, &TimeChunked, 15);
+//hash_func!(hash_date_chunked, &TimeChunked, 14);
+//hash_func!(hash_categorical_chunked, &CategoricalChunked, 15);
+//hash_func!(hash_decimal_chunked, &DecimalChunked, 15);
 
 #[polars_expr(output_type=UInt64)]
 fn hash_series(inputs: &[Series]) -> PolarsResult<Series> {
@@ -161,6 +169,41 @@ fn hash_series(inputs: &[Series]) -> PolarsResult<Series> {
     }
     if let Ok(ichunks) = chunks.bool() {
         let hash = hash_bool_chunked(ichunks);
+        return Ok(Series::new("hash".into(), vec![hash]));
+    }
+    if let Ok(ichunks) = chunks.datetime() {
+        let hash = hash_datetime_chunked(ichunks);
+        return Ok(Series::new("hash".into(), vec![hash]));
+    }
+    // if let Ok(ichunks) = chunks.date() {
+    //     let hash = hash_date_chunked(ichunks);
+    //     return Ok(Series::new("hash".into(), vec![hash]));
+    // }
+    // if let Ok(ichunks) = chunks.array() {
+    //     let hash = hash_array_chunked(ichunks);
+    //     return Ok(Series::new("hash".into(), vec![hash]));
+    // }
+  
+    // if let Ok(ichunks) = chunks.decimal() {
+    //     let hash = hash_decimal_chunked(ichunks);
+    //     return Ok(Series::new("hash".into(), vec![hash]));
+    // }
+    // if let Ok(ichunks) = chunks.list() {
+    //     let hash = hash_list_chunked(ichunks);
+    //     return Ok(Series::new("hash".into(), vec![hash]));
+    // }
+    // if let Ok(ichunks) = chunks.categorical() {
+    //     let hash = hash_categorical_chunked(ichunks);
+    //     return Ok(Series::new("hash".into(), vec![hash]));
+    // }
+
+
+    if let Ok(ichunks) = chunks.duration() {
+        let hash = hash_duration_chunked(ichunks);
+        return Ok(Series::new("hash".into(), vec![hash]));
+    }
+    if let Ok(ichunks) = chunks.time() {
+        let hash = hash_time_chunked(ichunks);
         return Ok(Series::new("hash".into(), vec![hash]));
     }
 
