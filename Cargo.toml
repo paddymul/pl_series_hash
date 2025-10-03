@@ -11,7 +11,7 @@ crate-type= ["cdylib"]
 pyo3 = { version = "0.25.0", features = ["extension-module", "abi3-py39"] }
 pyo3-polars = { version = "0.22.0", features = ["derive"] }
 serde = { version = "1", features = ["derive"] }
-polars = { version = "0.49.1", default-features = false }
+polars = { version = "0.49.1", features = ["dtype-struct"] }
 polars-arrow = { version = "0.49.1", default-features = false }
 twox-hash = "2.1.2"
 
