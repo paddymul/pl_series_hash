@@ -61,7 +61,7 @@ def test_hash_u64_two_chunks():
 
 
 def test_hash_i32():
-    assert 8094616336673590623 = hash_sequence([-5, 3, 20], dtype=pl.Int32)
+    assert 8094616336673590623 == hash_sequence([-5, 3, 20], dtype=pl.Int32)
 
 
 def test_hash_u64_nan():
