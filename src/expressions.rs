@@ -124,35 +124,6 @@ hash_func!(hash_time_chunked, &TimeChunked, 15);
 //hash_func!(hash_categorical_chunked, &CategoricalChunked, 15);
 //hash_func!(hash_decimal_chunked, &DecimalChunked, 15);
 
-
-    // if let Ok(ichunks) = chunks.i64() {
-    //     hash_i64_chunked(ichunks)}
-    // if let Ok(ichunks) = chunks.i32() {
-    //     hash_i32_chunked(ichunks);}
-    // if let Ok(ichunks) = chunks.i16() {
-    //     hash_i16_chunked(ichunks);}
-    // if let Ok(ichunks) = chunks.i8() {
-    //     hash_i8_chunked(ichunks);}
-    // if let Ok(ichunks) = chunks.u64() {
-    //     hash_u64_chunked(ichunks);}
-    // if let Ok(ichunks) = chunks.u32() {
-    //     hash_u32_chunked(ichunks);}
-    // if let Ok(ichunks) = chunks.u16() {
-    //     hash_u16_chunked(ichunks);}
-    // if let Ok(ichunks) = chunks.u8() {
-    //     hash_u8_chunked(ichunks);}
-    // if let Ok(ichunks) = chunks.f64() {
-    //     hash_f64_chunked(ichunks);}
-    // if let Ok(ichunks) = chunks.f32() {
-    //     hash_f32_chunked(ichunks);}
-    // if let Ok(ichunks) = chunks.str() {
-    //     hash_string_chunked(ichunks);}
-    // if let Ok(ichunks) = chunks.bool() {
-    //     hash_bool_chunked(ichunks);}
-    // if let Ok(ichunks) = chunks.datetime() {
-    //     hash_datetime_chunked(ichunks);}
-    // if let Ok(ichunks) = chunks.duration() {
-    //     hash_duration_chunked(ichunks);}
     // // if let Ok(ichunks) = chunks.time() {
     // //     hash_time_chunked(ichunks);}
     // // if let Ok(ichunks) = chunks.date() {
@@ -174,12 +145,6 @@ fn hash_single_series(chunks:&Series) -> Option<u64> {
 
     // }
 
-    // if let Ok(ichunks) = chunks.f64() {
-    //     hash_f64_chunked(ichunks);}
-    // if let Ok(ichunks) = chunks.f32() {
-    //     hash_f32_chunked(ichunks);}
-    // if let Ok(ichunks) = chunks.str() {
-    //     hash_string_chunked(ichunks);}
 
     match chunks.dtype() {
         DataType::Int64 => {
@@ -195,6 +160,10 @@ fn hash_single_series(chunks:&Series) -> Option<u64> {
         DataType::Float64 => Some(hash_f64_chunked(chunks.f64().ok()?)),
         DataType::Float32 => Some(hash_f32_chunked(chunks.f32().ok()?)),
         DataType::String => Some(hash_string_chunked(chunks.str().ok()?)),
+        DataType::Boolean => Some(hash_bool_chunked(chunks.bool().ok()?)),
+        //DataType::String => Some(hash_string_chunked(chunks.str().ok()?)),
+        //DataType::String => Some(hash_string_chunked(chunks.str().ok()?)),
+        
         //DataType::Datetime => Some(hash_datetime_chunked(chunks.datetime().ok()?)),
         //DataType::Duration => Some(hash_duration_chunked(chunks.duration().ok()?)),
         //DataType::Time => Some(hash_time_chunked(chunks.time().ok()?)),
@@ -218,104 +187,6 @@ fn hash_series(inputs: &[Series]) -> PolarsResult<Series> {
         Some(maybe_hash) => Ok(Series::new("hash".into(), vec![maybe_hash])),
         _ => Err(PolarsError::ComputeError("couldn't compute hash for column type".into()))
     }
-}
-
-pub fn hash_series_orig(inputs: &[Series]) -> PolarsResult<Series> {
-    let chunks = &inputs[0];
-
-    // match chunks.dtype {
-    //     DataType::Struct(fields) => {
-    //         Ok(Field::new("struct_point_2d".into(), DataType::Struct(fields.clone())))
-    //     }
-
-    // }
-    if let Ok(ichunks) = chunks.i64() {
-        let hash = hash_i64_chunked(ichunks);
-        return Ok(Series::new("hash".into(), vec![hash]));
-    }
-    if let Ok(ichunks) = chunks.i32() {
-        let hash = hash_i32_chunked(ichunks);
-        return Ok(Series::new("hash".into(), vec![hash]));
-    }
-    if let Ok(ichunks) = chunks.i16() {
-        let hash = hash_i16_chunked(ichunks);
-        return Ok(Series::new("hash".into(), vec![hash]));
-    }
-    if let Ok(ichunks) = chunks.i8() {
-        let hash = hash_i8_chunked(ichunks);
-        return Ok(Series::new("hash".into(), vec![hash]));
-    }
-    if let Ok(ichunks) = chunks.u64() {
-        let hash = hash_u64_chunked(ichunks);
-        return Ok(Series::new("hash".into(), vec![hash]));
-    }
-    if let Ok(ichunks) = chunks.u32() {
-        let hash = hash_u32_chunked(ichunks);
-        return Ok(Series::new("hash".into(), vec![hash]));
-    }
-    if let Ok(ichunks) = chunks.u16() {
-        let hash = hash_u16_chunked(ichunks);
-        return Ok(Series::new("hash".into(), vec![hash]));
-    }
-    if let Ok(ichunks) = chunks.u8() {
-        let hash = hash_u8_chunked(ichunks);
-        return Ok(Series::new("hash".into(), vec![hash]));
-    }
-    if let Ok(ichunks) = chunks.f64() {
-        let hash = hash_f64_chunked(ichunks);
-        return Ok(Series::new("hash".into(), vec![hash]));
-    }
-    if let Ok(ichunks) = chunks.f32() {
-        let hash = hash_f32_chunked(ichunks);
-        return Ok(Series::new("hash".into(), vec![hash]));
-    }
-    if let Ok(ichunks) = chunks.str() {
-        let hash = hash_string_chunked(ichunks);
-        return Ok(Series::new("hash".into(), vec![hash]));
-    }
-    if let Ok(ichunks) = chunks.bool() {
-        let hash = hash_bool_chunked(ichunks);
-        return Ok(Series::new("hash".into(), vec![hash]));
-    }
-    if let Ok(ichunks) = chunks.datetime() {
-        let hash = hash_datetime_chunked(ichunks);
-        return Ok(Series::new("hash".into(), vec![hash]));
-    }
-    // if let Ok(ichunks) = chunks.date() {
-    //     let hash = hash_date_chunked(ichunks);
-    //     return Ok(Series::new("hash".into(), vec![hash]));
-    // }
-    // if let Ok(ichunks) = chunks.array() {
-    //     let hash = hash_array_chunked(ichunks);
-    //     return Ok(Series::new("hash".into(), vec![hash]));
-    // }
-  
-    // if let Ok(ichunks) = chunks.decimal() {
-    //     let hash = hash_decimal_chunked(ichunks);
-    //     return Ok(Series::new("hash".into(), vec![hash]));
-    // }
-    // if let Ok(ichunks) = chunks.list() {
-    //     let hash = hash_list_chunked(ichunks);
-    //     return Ok(Series::new("hash".into(), vec![hash]));
-    // }
-    // if let Ok(ichunks) = chunks.categorical() {
-    //     let hash = hash_categorical_chunked(ichunks);
-    //     return Ok(Series::new("hash".into(), vec![hash]));
-    // }
-
-
-    if let Ok(ichunks) = chunks.duration() {
-        let hash = hash_duration_chunked(ichunks);
-        return Ok(Series::new("hash".into(), vec![hash]));
-    }
-    if let Ok(ichunks) = chunks.time() {
-        let hash = hash_time_chunked(ichunks);
-        return Ok(Series::new("hash".into(), vec![hash]));
-    }
-
-    Err(PolarsError::ComputeError(
-        "couldn't compute hash for column type".into(),
-    ))
 }
 
 /*
