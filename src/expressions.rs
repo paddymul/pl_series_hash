@@ -66,6 +66,12 @@ hash_func!(hash_u16_chunked, &UInt16Chunked, 7);
 hash_func!(hash_u8_chunked, &UInt8Chunked, 8);
 hash_func!(hash_f64_chunked, &Float64Chunked, 9);
 hash_func!(hash_f32_chunked, &Float32Chunked, 10);
+hash_func!(hash_datetime_chunked, &DatetimeChunked, 13);
+hash_func!(hash_duration_chunked, &DurationChunked, 14);
+hash_func!(hash_time_chunked, &TimeChunked, 15);
+hash_func!(hash_date_chunked, &DateChunked, 16);
+//  #[cfg(feature = "dtype-decimal")]
+// hash_func!(hash_decimal_chunked, &DecimalChunked, 17);
 
 
 
@@ -81,9 +87,7 @@ fn hash_string_chunked(cb: &StringChunked) -> u64 {
                 hasher.write(STRING_SEPERATOR);
                 hasher.write(&count.to_le_bytes());
             },
-            _ => {
-                hasher.write(NAN_SEPERATOR);
-            },
+            _ => hasher.write(NAN_SEPERATOR)
         }
     }
     //find_invalid_utf8();
@@ -104,80 +108,62 @@ fn hash_bool_chunked(cb: &BooleanChunked) -> u64 {
                     hasher.write(&(0u8).to_le_bytes())
                 }
             },
-            _ => {
-                hasher.write(NAN_SEPERATOR);
-            },
+            _ => hasher.write(NAN_SEPERATOR)
         }
         hasher.write(&count.to_le_bytes());
     }
     hasher.finish()
 }
 
-// these will work
-hash_func!(hash_datetime_chunked, &DatetimeChunked, 13);
-hash_func!(hash_duration_chunked, &DurationChunked, 14);
-hash_func!(hash_time_chunked, &TimeChunked, 15);
 
-
-
-//hash_func!(hash_date_chunked, &TimeChunked, 14);
-//hash_func!(hash_categorical_chunked, &CategoricalChunked, 15);
-//hash_func!(hash_decimal_chunked, &DecimalChunked, 15);
-
-    // // if let Ok(ichunks) = chunks.time() {
-    // //     hash_time_chunked(ichunks);}
-    // // if let Ok(ichunks) = chunks.date() {
-    // //     hash_date_chunked(ichunks);}
-    // // if let Ok(ichunks) = chunks.array() {
-    // //     hash_array_chunked(ichunks);}
-    // // if let Ok(ichunks) = chunks.decimal() {
-    // //     hash_decimal_chunked(ichunks);}
-    // // if let Ok(ichunks) = chunks.list() {
-    // //     hash_list_chunked(ichunks);}
-    // // if let Ok(ichunks) = chunks.categorical() {
-    // //     hash_categorical_chunked(ichunks);}
-
-fn hash_single_series(chunks:&Series) -> Option<u64> {
-    // match chunks.dtype {
-    //     DataType::Struct(fields) => {
-    //         Ok(Field::new("struct_point_2d".into(), DataType::Struct(fields.clone())))
-    //     }
-
-    // }
-
-
-    match chunks.dtype() {
-        DataType::Int64 => {
-            Some(hash_i64_chunked(chunks.i64().ok()?)) }
-        DataType::Int32 => {
-            Some(hash_i32_chunked(chunks.i32().ok()?))} 
-        DataType::Int16 => Some(hash_i16_chunked(chunks.i16().ok()?)),
-        DataType::Int8 => Some(hash_i8_chunked(chunks.i8().ok()?)),
-        DataType::UInt64 => Some(hash_u64_chunked(chunks.u64().ok()?)),
-        DataType::UInt32 => Some(hash_u32_chunked(chunks.u32().ok()?)),
-        DataType::UInt16 => Some(hash_u16_chunked(chunks.u16().ok()?)),
-        DataType::UInt8 => Some(hash_u8_chunked(chunks.u8().ok()?)),
-        DataType::Float64 => Some(hash_f64_chunked(chunks.f64().ok()?)),
-        DataType::Float32 => Some(hash_f32_chunked(chunks.f32().ok()?)),
-        DataType::String => Some(hash_string_chunked(chunks.str().ok()?)),
-        DataType::Boolean => Some(hash_bool_chunked(chunks.bool().ok()?)),
-        //DataType::String => Some(hash_string_chunked(chunks.str().ok()?)),
-        //DataType::String => Some(hash_string_chunked(chunks.str().ok()?)),
-        
-        //DataType::Datetime => Some(hash_datetime_chunked(chunks.datetime().ok()?)),
-        //DataType::Duration => Some(hash_duration_chunked(chunks.duration().ok()?)),
-        //DataType::Time => Some(hash_time_chunked(chunks.time().ok()?)),
-        _ => Some(hash_i32_chunked(chunks.i32().ok()?))
+fn hash_struct_series(cb: &StructChunked) -> Option<u64> {
+    let mut hasher = XxHash64::with_seed(SEED);
+    hasher.write(&hardcode_bytes(18));
+    let mut count: u64 = 0;
+    for ser in cb.fields_as_series() {
+        let maybe_hash = hash_single_series(&ser);
+        count += 1;
+        match maybe_hash {
+            Some(maybe_hash) => {
+                hasher.write(&maybe_hash.to_le_bytes());
+                hasher.write(&count.to_le_bytes());
+            },
+            _ => return None
+        }
     }
-
-    // if let Ok(ichunks) = chunks.bool() {
-    //     hash_bool_chunked(ichunks);}
-    // if let Ok(ichunks) = chunks.datetime() {
-    //     hash_datetime_chunked(ichunks);}
-    // if let Ok(ichunks) = chunks.duration() {
-    //     hash_duration_chunked(ichunks);}
-
+    Some(hasher.finish())
 }
+
+
+fn hash_single_series(s:&Series) -> Option<u64> {
+    match s.dtype() {
+        DataType::Int64 => Some(hash_i64_chunked(s.i64().ok()?)),
+        DataType::Int32 => Some(hash_i32_chunked(s.i32().ok()?)),
+        DataType::Int16 => Some(hash_i16_chunked(s.i16().ok()?)),
+        DataType::Int8 => Some(hash_i8_chunked(s.i8().ok()?)),
+        DataType::UInt64 => Some(hash_u64_chunked(s.u64().ok()?)),
+        DataType::UInt32 => Some(hash_u32_chunked(s.u32().ok()?)),
+        DataType::UInt16 => Some(hash_u16_chunked(s.u16().ok()?)),
+        DataType::UInt8 => Some(hash_u8_chunked(s.u8().ok()?)),
+        DataType::Float64 => Some(hash_f64_chunked(s.f64().ok()?)),
+        DataType::Float32 => Some(hash_f32_chunked(s.f32().ok()?)),
+        DataType::String => Some(hash_string_chunked(s.str().ok()?)),
+        DataType::Boolean => Some(hash_bool_chunked(s.bool().ok()?)),
+        DataType::Datetime(_, _) => Some(hash_datetime_chunked(s.datetime().ok()?)),
+        DataType::Duration(_) => Some(hash_duration_chunked(s.duration().ok()?)),
+        DataType::Time => Some(hash_time_chunked(s.time().ok()?)),
+        DataType::Date => Some(hash_date_chunked(s.date().ok()?)),
+        DataType::Struct(_) => hash_struct_series(s.struct_().ok()?),
+        //DataType::Array => Some(hash_array_chunked(s.array().ok()?)),
+        //DataType::List => Some(hash_list_chunked(s.list().ok()?)),
+        //DataType::Categorical => Some(hash_categorical_chunked(s.categorical().ok()?)),
+        // #[cfg(feature = "dtype-decimal")]
+        // DataType::Decimal => Some(hash_decimal_chunked(s.decimal().ok()?)),
+        _ => Some(hash_i32_chunked(s.i32().ok()?))
+    }
+}
+
+
 
 #[polars_expr(output_type=UInt64)]
 fn hash_series(inputs: &[Series]) -> PolarsResult<Series> {
