@@ -73,8 +73,6 @@ hash_func!(hash_date_chunked, &DateChunked, 16);
 //  #[cfg(feature = "dtype-decimal")]
 // hash_func!(hash_decimal_chunked, &DecimalChunked, 17);
 
-
-
 fn hash_string_chunked(cb: &StringChunked) -> u64 {
     let mut hasher = XxHash64::with_seed(SEED);
     hasher.write(&hardcode_bytes(11));
@@ -115,7 +113,6 @@ fn hash_bool_chunked(cb: &BooleanChunked) -> u64 {
     hasher.finish()
 }
 
-
 fn hash_struct_series(cb: &StructChunked) -> Option<u64> {
     let mut hasher = XxHash64::with_seed(SEED);
     hasher.write(&hardcode_bytes(18));
@@ -134,6 +131,25 @@ fn hash_struct_series(cb: &StructChunked) -> Option<u64> {
     Some(hasher.finish())
 }
 
+fn hash_array_series(cb: &ArrayChunked) -> Option<u64> {
+    let mut hasher = XxHash64::with_seed(SEED);
+    hasher.write(&hardcode_bytes(19));
+    let mut count: u64 = 0;
+    let num_columns = cb.len();
+    for i in 0..num_columns {
+        let ser = cb.get_as_series(i)?;
+        let maybe_hash = hash_single_series(&ser);
+        count += 1;
+        match maybe_hash {
+            Some(maybe_hash) => {
+                hasher.write(&maybe_hash.to_le_bytes());
+                hasher.write(&count.to_le_bytes());
+            },
+            _ => return None
+        }
+    }
+    Some(hasher.finish())
+}
 
 fn hash_single_series(s:&Series) -> Option<u64> {
     match s.dtype() {
@@ -154,7 +170,7 @@ fn hash_single_series(s:&Series) -> Option<u64> {
         DataType::Time => Some(hash_time_chunked(s.time().ok()?)),
         DataType::Date => Some(hash_date_chunked(s.date().ok()?)),
         DataType::Struct(_) => hash_struct_series(s.struct_().ok()?),
-        //DataType::Array => Some(hash_array_chunked(s.array().ok()?)),
+        DataType::Array(_,_) => hash_array_series(s.array().ok()?),
         //DataType::List => Some(hash_list_chunked(s.list().ok()?)),
         //DataType::Categorical => Some(hash_categorical_chunked(s.categorical().ok()?)),
         // #[cfg(feature = "dtype-decimal")]
