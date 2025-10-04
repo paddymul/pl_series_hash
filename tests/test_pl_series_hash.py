@@ -129,5 +129,25 @@ def test_categorical():
 
     #we should get a different answer if this was strings
     assert not enum_result == hash_sequence(vals)
-    
-    
+
+
+def test_namespaced_function():
+    """
+      Verify that pl.all() works for this
+    """
+    df_1 = pl.DataFrame({"u64": pl.Series([5, 3, 20], dtype=pl.UInt64)})
+
+    result_1 = df_1.select(pl.col('u64').pl_series_hash.hash_xx())
+
+    expected_df1 = pl.DataFrame({"u64": [U64_5_3_20_HASH]})
+
+    assert result_1.equals(expected_df1)
+
+    df_2 = pl.DataFrame({
+        "u64": pl.Series([5, 3, 20], dtype=pl.UInt64),
+        'i64': pl.Series([5, 3, 20], dtype=pl.Int64)})
+    result_2 = df_2.select(pl.all().pl_series_hash.hash_xx())
+
+    expected_df2 = pl.DataFrame({"u64": [U64_5_3_20_HASH], 'i64':[I64_5_3_20_HASH]})
+
+    assert result_2.equals(expected_df2)
