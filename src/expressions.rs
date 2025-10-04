@@ -82,12 +82,12 @@ fn hash_string_chunked(cb: &StringChunked) -> u64 {
         match val {
             Some(val) => {
                 hasher.write(val.as_bytes());
-                hasher.write(STRING_SEPERATOR);
-                hasher.write(&count.to_le_bytes());
             },
             _ => hasher.write(NAN_SEPERATOR)
         }
+        hasher.write(STRING_SEPERATOR);
     }
+    hasher.write(&count.to_le_bytes());
     //find_invalid_utf8();
     hasher.finish()
 }
@@ -227,6 +227,8 @@ fn hash_single_series(s:&Series) -> Option<u64> {
 fn hash_series(inputs: &[Series]) -> PolarsResult<Series> {
     let chunks = &inputs[0];
     let maybe_hash = hash_single_series(chunks);
+    //println!("hash_series for {} ", inputs);
+    println!("here");
     match maybe_hash {
         Some(maybe_hash) => Ok(Series::new("hash".into(), vec![maybe_hash])),
         _ => Err(PolarsError::ComputeError("couldn't compute hash for column type".into()))
