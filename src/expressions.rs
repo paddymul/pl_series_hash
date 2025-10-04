@@ -151,35 +151,24 @@ fn hash_array_series(cb: &ArrayChunked) -> Option<u64> {
     Some(hasher.finish())
 }
 
-fn hash_categorical_chunked(cb: &CategoricalChunked, rev_mapping:&Option<Arc<RevMapping>>) -> Option<u64> {
+fn hash_categorical_chunked(cb: &CategoricalChunked) -> u64 {
     let mut hasher = XxHash64::with_seed(SEED);
     hasher.write(&hardcode_bytes(20));
-
-    match rev_mapping {
-        Some(rev_mapping) => {
-            let cats = rev_mapping.get_categories();
-
-            let num_cats = cats.len();
-            let mut count: u64 = 0;
-
-            for i in 0..num_cats {
-                let val = cats.get(i)?;
-                // i'd like to sort this and reorder vals by sorting... but here we are
+    let mut count: u64 = 0;
+    for val in cb.iter_str() {
+        count += 1;
+        match val {
+            Some(val) => {
                 hasher.write(val.as_bytes());
                 hasher.write(STRING_SEPERATOR);
                 hasher.write(&count.to_le_bytes());
-                count +=1;
-            }
-            
-            Some(hasher.finish())
-        },
-        _ => None
+            },
+            _ => hasher.write(NAN_SEPERATOR)
+        }
     }
+    hasher.finish()
 }
 
-// fn hash_enum_chunked(cb: &EnumChunked, revMapping:&Option<Arc<RevMapping>>) -> Option<u64> {
-//     Some(8)
-// }
 
 fn hash_single_series(s:&Series) -> Option<u64> {
     match s.dtype() {
@@ -202,8 +191,8 @@ fn hash_single_series(s:&Series) -> Option<u64> {
         DataType::Struct(_) => hash_struct_series(s.struct_().ok()?),
         DataType::Array(_,_) => hash_array_series(s.array().ok()?),
         //DataType::List => Some(hash_list_chunked(s.list().ok()?)),
-        DataType::Categorical(rev_mapping, _) => hash_categorical_chunked(s.categorical().ok()?, rev_mapping),
-        // DataType::Enum(revMapping, _) => hash_enum_chunked(s.enum_().ok()?, revMapping),
+        DataType::Categorical(_, _) => Some(hash_categorical_chunked(s.categorical().ok()?)),
+        DataType::Enum(_, _) => Some(hash_categorical_chunked(s.categorical().ok()?)),
 
         // #[cfg(feature = "dtype-decimal")]
         // DataType::Decimal => Some(hash_decimal_chunked(s.decimal().ok()?)),
