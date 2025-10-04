@@ -108,3 +108,26 @@ def test_hash_str():
     hash_2 = 13865378224932904863
     assert hash_2 == result_2
     assert not hash_1 == hash_2
+
+def test_enum():
+    bears_enum = pl.Enum(["Polar", "Panda", "Brown"])
+
+    vals = ["Polar", "Panda", "Brown", "Brown", "Polar"]
+    enum_result = hash_sequence(vals, dtype=bears_enum)
+    assert enum_result == 9667549460406375702
+
+    #we should get a different answer if this was strings
+    assert not enum_result == hash_sequence(vals)
+
+def test_categorical():
+    #categorical and enum are treated the same on the rust side
+    # I'm not sure if this is a mistake
+    # further I'm not sure if this should all be treated like strings
+    vals = ["Polar", "Panda", "Brown", "Brown", "Polar"]
+    enum_result = hash_sequence(vals, dtype=pl.Categorical)
+    assert enum_result == 9667549460406375702
+
+    #we should get a different answer if this was strings
+    assert not enum_result == hash_sequence(vals)
+    
+    

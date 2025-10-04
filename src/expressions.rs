@@ -151,35 +151,77 @@ fn hash_array_series(cb: &ArrayChunked) -> Option<u64> {
     Some(hasher.finish())
 }
 
+fn hash_categorical_chunked(cb: &CategoricalChunked) -> u64 {
+    let mut hasher = XxHash64::with_seed(SEED);
+    hasher.write(&hardcode_bytes(20));
+    let mut count: u64 = 0;
+    for val in cb.iter_str() {
+        count += 1;
+        match val {
+            Some(val) => {
+                hasher.write(val.as_bytes());
+                hasher.write(STRING_SEPERATOR);
+                hasher.write(&count.to_le_bytes());
+            },
+            _ => hasher.write(NAN_SEPERATOR)
+        }
+    }
+    hasher.finish()
+}
+
+fn hash_null_series(_s:&Series) -> Option<u64> {
+    // fine, i guess, maybe I should return the length of the series here
+    // it all seems silly
+
+    Some(0)
+}
+
 fn hash_single_series(s:&Series) -> Option<u64> {
+    // this match statement was reorderd to coincide with
+    // https://docs.rs/polars/0.49.1/polars/datatypes/enum.DataType.html
     match s.dtype() {
-        DataType::Int64 => Some(hash_i64_chunked(s.i64().ok()?)),
-        DataType::Int32 => Some(hash_i32_chunked(s.i32().ok()?)),
-        DataType::Int16 => Some(hash_i16_chunked(s.i16().ok()?)),
-        DataType::Int8 => Some(hash_i8_chunked(s.i8().ok()?)),
-        DataType::UInt64 => Some(hash_u64_chunked(s.u64().ok()?)),
-        DataType::UInt32 => Some(hash_u32_chunked(s.u32().ok()?)),
-        DataType::UInt16 => Some(hash_u16_chunked(s.u16().ok()?)),
-        DataType::UInt8 => Some(hash_u8_chunked(s.u8().ok()?)),
-        DataType::Float64 => Some(hash_f64_chunked(s.f64().ok()?)),
-        DataType::Float32 => Some(hash_f32_chunked(s.f32().ok()?)),
-        DataType::String => Some(hash_string_chunked(s.str().ok()?)),
         DataType::Boolean => Some(hash_bool_chunked(s.bool().ok()?)),
+
+        DataType::UInt8 => Some(hash_u8_chunked(s.u8().ok()?)),
+        DataType::UInt16 => Some(hash_u16_chunked(s.u16().ok()?)),
+        DataType::UInt32 => Some(hash_u32_chunked(s.u32().ok()?)),
+        DataType::UInt64 => Some(hash_u64_chunked(s.u64().ok()?)),
+
+        DataType::Int8 => Some(hash_i8_chunked(s.i8().ok()?)),
+        DataType::Int16 => Some(hash_i16_chunked(s.i16().ok()?)),
+        DataType::Int32 => Some(hash_i32_chunked(s.i32().ok()?)),
+        DataType::Int64 => Some(hash_i64_chunked(s.i64().ok()?)),
+        //DataType::Int128 => Some(hash_i128_chunked(s.i128().ok()?)),
+
+        DataType::Float32 => Some(hash_f32_chunked(s.f32().ok()?)),
+        DataType::Float64 => Some(hash_f64_chunked(s.f64().ok()?)),
+
+        // #[cfg(feature = "dtype-decimal")]
+        // DataType::Decimal => Some(hash_decimal_chunked(s.decimal().ok()?)),
+
+        DataType::String => Some(hash_string_chunked(s.str().ok()?)),
+
+        //Binary
+        //BinaryOffset
+
+        DataType::Date => Some(hash_date_chunked(s.date().ok()?)),
         DataType::Datetime(_, _) => Some(hash_datetime_chunked(s.datetime().ok()?)),
         DataType::Duration(_) => Some(hash_duration_chunked(s.duration().ok()?)),
         DataType::Time => Some(hash_time_chunked(s.time().ok()?)),
-        DataType::Date => Some(hash_date_chunked(s.date().ok()?)),
-        DataType::Struct(_) => hash_struct_series(s.struct_().ok()?),
+
         DataType::Array(_,_) => hash_array_series(s.array().ok()?),
         //DataType::List => Some(hash_list_chunked(s.list().ok()?)),
-        //DataType::Categorical => Some(hash_categorical_chunked(s.categorical().ok()?)),
-        // #[cfg(feature = "dtype-decimal")]
-        // DataType::Decimal => Some(hash_decimal_chunked(s.decimal().ok()?)),
-        _ => Some(hash_i32_chunked(s.i32().ok()?))
+
+        //Object  skipped
+        DataType::Null => hash_null_series(s),
+        DataType::Categorical(_, _) => Some(hash_categorical_chunked(s.categorical().ok()?)),
+        DataType::Enum(_, _) => Some(hash_categorical_chunked(s.categorical().ok()?)),
+        DataType::Struct(_) => hash_struct_series(s.struct_().ok()?),
+        //once again why?
+        //DataType::Unknown(_) => None,
+        _ => None,
     }
 }
-
-
 
 #[polars_expr(output_type=UInt64)]
 fn hash_series(inputs: &[Series]) -> PolarsResult<Series> {
