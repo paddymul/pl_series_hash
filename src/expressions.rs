@@ -169,8 +169,8 @@ fn hash_categorical_chunked(cb: &CategoricalChunked) -> u64 {
     hasher.finish()
 }
 
-fn hash_null_series(s:&Series) -> Option<u64> {
-    // fine, i guess, maybe I should return the lenght of the series here
+fn hash_null_series(_s:&Series) -> Option<u64> {
+    // fine, i guess, maybe I should return the length of the series here
     // it all seems silly
 
     Some(0)
@@ -218,7 +218,7 @@ fn hash_single_series(s:&Series) -> Option<u64> {
         DataType::Enum(_, _) => Some(hash_categorical_chunked(s.categorical().ok()?)),
         DataType::Struct(_) => hash_struct_series(s.struct_().ok()?),
         //once again why?
-        DataType::Unknown => None,
+        //DataType::Unknown(_) => None,
         _ => None,
     }
 }

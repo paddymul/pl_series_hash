@@ -38,27 +38,42 @@ The presence and position of nulls do affect the hash value
 ## Supported column types
 
 The following polars Rust datatypes are supported
-* DataType::Int64
-* DataType::Int32
-* DataType::Int16
-* DataType::Int8
-* DataType::UInt64
-* DataType::UInt32
-* DataType::UInt16
-* DataType::UInt8
-* DataType::Float64
-* DataType::Float32
-* DataType::String
-* DataType::Boolean
-* DataType::Datetime(_, _)
-* DataType::Duration(_)
-* DataType::Time
-* DataType::Date
-* DataType::Struct(_)
-* DataType::Array(_,_)
 
-## Nearterm planned datatypes
-enums, categoricals, List, Decimal, 
+* Boolean
+* UInt8
+* UInt16
+* UInt32
+* UInt64
+* Int8
+* Int16
+* Int32
+* Int64
+* Float32
+* Float64
+* String
+* Date
+* Datetime
+* Duration
+* Time
+* Array
+* Null
+* Categorical
+* Enum
+* Struct
+
+## Unsupported datatypes
+
+### Planned
+Binary
+BinaryOffset
+Int128 - planned, it's a compile/config option
+Decimal - planned it's a compile/config option
+
+### Not planned
+Object - Summary stats on objects are useless and these columns rarely show up.  I will probably skip
+List Complex nested type implementation, rarely used
+DataType::Unknown #  have no idea what could be done with this in use
+Null  - Currently implemented but I don't know the use case for this
 
 ## Basic implementation
 
