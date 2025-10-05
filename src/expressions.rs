@@ -18,6 +18,7 @@ const NAN_SEPERATOR: &[u8; 2] = &129u16.to_le_bytes();
 macro_rules! hash_func {
     ($a:ident, $b:ty, $type_num:expr) => {
         fn $a(cb: $b) -> u64 {
+            println!("macro_hashfunc");
             let mut hasher = XxHash64::with_seed(SEED);
             hasher.write(&hardcode_bytes($type_num));
             let mut count: u64 = 0;
@@ -29,7 +30,7 @@ macro_rules! hash_func {
                         hasher.write(NAN_SEPERATOR);
                     },
                 }
-                hasher.write(&count.to_le_bytes());
+            hasher.write(&count.to_le_bytes());
             }
             hasher.finish()
         }
@@ -75,6 +76,7 @@ hash_func!(hash_date_chunked, &DateChunked, 16);
 
 fn hash_string_chunked(cb: &StringChunked) -> u64 {
     let mut hasher = XxHash64::with_seed(SEED);
+    println!("hash_string_chunked");
     hasher.write(&hardcode_bytes(11));
     let mut count: u64 = 0;
     for val in cb.iter() {
@@ -227,8 +229,6 @@ fn hash_single_series(s:&Series) -> Option<u64> {
 fn hash_series(inputs: &[Series]) -> PolarsResult<Series> {
     let chunks = &inputs[0];
     let maybe_hash = hash_single_series(chunks);
-    //println!("hash_series for {} ", inputs);
-    println!("here");
     match maybe_hash {
         Some(maybe_hash) => Ok(Series::new("hash".into(), vec![maybe_hash])),
         _ => Err(PolarsError::ComputeError("couldn't compute hash for column type".into()))

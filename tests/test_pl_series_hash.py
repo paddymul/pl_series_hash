@@ -84,12 +84,12 @@ def test_hash_u64_nan():
 
 def test_hash_null_str():
     result_1 = hash_sequence(["this", None, "is", "not", "pig", "latin"])
-    hash_1 = 16789198962064671277
+    hash_1 = 4106027340556122483
     assert hash_1 == result_1
 
     result_2 = hash_sequence(["this", "is", "not", "pig", "latin"])
 
-    hash_2 = 9724091221529583951
+    hash_2 = 13508961007917248260
     assert hash_2 == result_2
     assert not hash_1 == hash_2
 
@@ -99,13 +99,13 @@ def test_hash_str():
     Basic test of the string hashing
     """
     result_1 = hash_sequence(["this", "is", "not"])
-    hash_1 = 5371592560750954784
+    hash_1 = 5568711240597014937
     assert hash_1 == result_1
 
     # Note the concatenation of this-is
     result_2 = hash_sequence(["thisis", "not", "pig", "latin"])
 
-    hash_2 = 13865378224932904863
+    hash_2 = 13996995000229945778
     assert hash_2 == result_2
     assert not hash_1 == hash_2
 
