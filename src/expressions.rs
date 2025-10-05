@@ -18,7 +18,6 @@ const NAN_SEPERATOR: &[u8; 2] = &129u16.to_le_bytes();
 macro_rules! hash_func {
     ($a:ident, $b:ty, $type_num:expr) => {
         fn $a(cb: $b) -> u64 {
-            println!("macro_hashfunc");
             let mut hasher = XxHash64::with_seed(SEED);
             hasher.write(&hardcode_bytes($type_num));
             let mut count: u64 = 0;
@@ -76,7 +75,6 @@ hash_func!(hash_date_chunked, &DateChunked, 16);
 
 fn hash_string_chunked(cb: &StringChunked) -> u64 {
     let mut hasher = XxHash64::with_seed(SEED);
-    println!("hash_string_chunked");
     hasher.write(&hardcode_bytes(11));
     let mut count: u64 = 0;
     for val in cb.iter() {
