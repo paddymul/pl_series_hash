@@ -22,6 +22,13 @@ shape: (1, 1)
 └─────────────────────┘
 ```
 
+You can hash every column in a dataframe with the namespaced function.
+
+```python
+import pl_series_hash
+df.select(pl.all().pl_series_hash.hash_xx())
+```
+
 
 ## Installing pl_series_hash
 

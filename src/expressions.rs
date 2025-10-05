@@ -29,7 +29,7 @@ macro_rules! hash_func {
                         hasher.write(NAN_SEPERATOR);
                     },
                 }
-                hasher.write(&count.to_le_bytes());
+            hasher.write(&count.to_le_bytes());
             }
             hasher.finish()
         }
@@ -82,12 +82,12 @@ fn hash_string_chunked(cb: &StringChunked) -> u64 {
         match val {
             Some(val) => {
                 hasher.write(val.as_bytes());
-                hasher.write(STRING_SEPERATOR);
-                hasher.write(&count.to_le_bytes());
             },
             _ => hasher.write(NAN_SEPERATOR)
         }
+        hasher.write(STRING_SEPERATOR);
     }
+    hasher.write(&count.to_le_bytes());
     //find_invalid_utf8();
     hasher.finish()
 }

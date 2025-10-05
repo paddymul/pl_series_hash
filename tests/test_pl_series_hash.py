@@ -84,12 +84,12 @@ def test_hash_u64_nan():
 
 def test_hash_null_str():
     result_1 = hash_sequence(["this", None, "is", "not", "pig", "latin"])
-    hash_1 = 16789198962064671277
+    hash_1 = 4106027340556122483
     assert hash_1 == result_1
 
     result_2 = hash_sequence(["this", "is", "not", "pig", "latin"])
 
-    hash_2 = 9724091221529583951
+    hash_2 = 13508961007917248260
     assert hash_2 == result_2
     assert not hash_1 == hash_2
 
@@ -99,13 +99,13 @@ def test_hash_str():
     Basic test of the string hashing
     """
     result_1 = hash_sequence(["this", "is", "not"])
-    hash_1 = 5371592560750954784
+    hash_1 = 5568711240597014937
     assert hash_1 == result_1
 
     # Note the concatenation of this-is
     result_2 = hash_sequence(["thisis", "not", "pig", "latin"])
 
-    hash_2 = 13865378224932904863
+    hash_2 = 13996995000229945778
     assert hash_2 == result_2
     assert not hash_1 == hash_2
 
@@ -129,5 +129,25 @@ def test_categorical():
 
     #we should get a different answer if this was strings
     assert not enum_result == hash_sequence(vals)
-    
-    
+
+
+def test_namespaced_function():
+    """
+      Verify that pl.all() works for this
+    """
+    df_1 = pl.DataFrame({"u64": pl.Series([5, 3, 20], dtype=pl.UInt64)})
+
+    result_1 = df_1.select(pl.col('u64').pl_series_hash.hash_xx())
+
+    expected_df1 = pl.DataFrame({"u64": [U64_5_3_20_HASH]})
+
+    assert result_1.equals(expected_df1)
+
+    df_2 = pl.DataFrame({
+        "u64": pl.Series([5, 3, 20], dtype=pl.UInt64),
+        'i64': pl.Series([5, 3, 20], dtype=pl.Int64)})
+    result_2 = df_2.select(pl.all().pl_series_hash.hash_xx())
+
+    expected_df2 = pl.DataFrame({"u64": [U64_5_3_20_HASH], 'i64':[I64_5_3_20_HASH]})
+
+    assert result_2.equals(expected_df2)
