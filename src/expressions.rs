@@ -233,6 +233,17 @@ fn hash_series(inputs: &[Series]) -> PolarsResult<Series> {
     }
 }
 
+#[polars_expr(output_type=UInt64)]
+fn crash_period(_inputs: &[Series]) -> PolarsResult<Series> {
+  // Causes a segmentation fault by dereferencing a null pointer (undefined behavior).
+    let p: *const i32 = std::ptr::null();
+    unsafe {
+        println!("{}", *p);
+    }
+    Ok(Series::new("hash".into(), vec![0u64]))
+}
+
+
 /*
 fn demo<T, const N: usize>(v: Vec<T>) -> [T; N] {
     v.try_into()
