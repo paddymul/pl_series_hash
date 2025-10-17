@@ -10,3 +10,13 @@ except:
 
 print("after crash call")
     
+
+"""
+  shell output from this file.
+
+  The exception can't be caught, it crashes hard
+ % python crash.py 
+thread caused non-unwinding panic. aborting.
+zsh: abort      python crash.py
+ %
+"""
