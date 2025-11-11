@@ -38,6 +38,28 @@ class SeriesHash:
     returns_scalar=True
     )
 
+    def crash(self) -> pl.Expr:
+        return register_plugin_function(
+    args=[self._expr],
+    plugin_path=LIB,
+    function_name="crash_period",
+    is_elementwise=False,
+    returns_scalar=True
+    )
+
+
+def crash(expr: IntoExprColumn) -> pl.Expr:
+    return register_plugin_function(
+        args=[expr],
+        plugin_path=LIB,
+        function_name="crash_period",
+        is_elementwise=False,
+        returns_scalar=True
+    )
+
+    
+
+
 
 
 # @pl.api.register_expr_namespace("dist_arr")
