@@ -97,6 +97,19 @@ All of this is then hashed.
 
 Structs and arrays are hashed recursively - a vector of each constituent sub-series is hashed, then that vector is hashed.
 
+## Dev, build, and packaging instrucitons
+
+This is based very directly on Marco Gorelli's [Polars Plugin Tutorial](https://marcogorelli.github.io/polars-plugins-tutorial/)
+
+to release a new version, first manually bump the version number in `cargo.toml`. Then make a PR with that commit, and merge it to main.
+
+Finally [draft a new release](https://github.com/paddymul/pl_series_hash/releases/new) on github, using the same tag and name as the cargo.toml version.
+
+The pypi package is automatically versioned the same as the tag.
+write tags without `v` or other artifacts.  so `0.2.1` not `v0.2.1`.
+
+For now, that flow works.  Obviously better workflows can be added to this section.
+
 ## Further research
 
 
