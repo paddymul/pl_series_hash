@@ -5,8 +5,9 @@ df_1 = pl.DataFrame({"u64": pl.Series([5, 3, 20], dtype=pl.UInt64)})
 
 try:
     result_1 = df_1.select(hash_col=crash("u64"))
-except:
+except Exception as e:
     print("caught exception")
+    print("e")
 
 print("after crash call")
     
