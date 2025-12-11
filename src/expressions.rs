@@ -1,5 +1,5 @@
 #![allow(clippy::unused_unit)]
-use std::hash::Hasher;
+use std::hash::{Hash, Hasher};
 
 use polars::prelude::*;
 use pyo3_polars::derive::polars_expr;
@@ -19,18 +19,12 @@ macro_rules! hash_func {
     ($a:ident, $b:ty, $type_num:expr) => {
         fn $a(cb: $b) -> u64 {
             let mut hasher = XxHash64::with_seed(SEED);
-            hasher.write(&hardcode_bytes($type_num));
-            let mut count: u64 = 0;
-            for val in cb.iter() {
-                count += 1;
-                match val {
-                    Some(val) => hasher.write(&val.to_le_bytes()),
-                    _ => {
-                        hasher.write(NAN_SEPERATOR);
-                    },
-                }
-            hasher.write(&count.to_le_bytes());
-            }
+            cb.dtype().hash(&mut hasher);
+            cb.downcast_iter().for_each(|arr| {
+                Hash::hash_slice(arr.values().as_slice(), &mut hasher);
+                arr.validity().map(|b| b.as_slice()).hash(&mut hasher);
+            });
+            cb.len().hash(&mut hasher);
             hasher.finish()
         }
     };
@@ -64,8 +58,8 @@ hash_func!(hash_u64_chunked, &UInt64Chunked, 5);
 hash_func!(hash_u32_chunked, &UInt32Chunked, 6);
 hash_func!(hash_u16_chunked, &UInt16Chunked, 7);
 hash_func!(hash_u8_chunked, &UInt8Chunked, 8);
-hash_func!(hash_f64_chunked, &Float64Chunked, 9);
-hash_func!(hash_f32_chunked, &Float32Chunked, 10);
+//hash_func!(hash_f64_chunked, &Float64Chunked, 9);
+//hash_func!(hash_f32_chunked, &Float32Chunked, 10);
 hash_func!(hash_datetime_chunked, &DatetimeChunked, 13);
 hash_func!(hash_duration_chunked, &DurationChunked, 14);
 hash_func!(hash_time_chunked, &TimeChunked, 15);
