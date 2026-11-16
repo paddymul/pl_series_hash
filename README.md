@@ -119,4 +119,3 @@ http://myeyesareblind.com/2017/02/06/Combine-hash-values/
 
 If you want elementwise hashing take a look at [polars-hash](https://github.com/ion-elgreco/polars-hash) It is a much more mature plugin that allows you to choose different hashing algorithms.
 
-
