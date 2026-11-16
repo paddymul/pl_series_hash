@@ -151,3 +151,33 @@ def test_namespaced_function():
     expected_df2 = pl.DataFrame({"u64": [U64_5_3_20_HASH], 'i64':[I64_5_3_20_HASH]})
 
     assert result_2.equals(expected_df2)
+
+
+def test_hash_i8():
+    assert 6272013365919797755 == hash_sequence([-5, 3, 20], dtype=pl.Int8)
+
+
+def test_hash_i16():
+    assert 5860216122029880740 == hash_sequence([-5, 3, 20], dtype=pl.Int16)
+
+
+def test_hash_u8():
+    assert 3742936407999072413 == hash_sequence([5, 3, 20], dtype=pl.UInt8)
+
+
+def test_hash_u16():
+    assert 274789183125561777 == hash_sequence([5, 3, 20], dtype=pl.UInt16)
+
+
+def test_hash_small_int_nulls():
+    assert 5065950094995335553 == hash_sequence([5, 3, None, 20], dtype=pl.UInt8)
+    assert 5253434866324085544 == hash_sequence([-5, 3, None, 20], dtype=pl.Int16)
+
+
+def test_hash_small_int_dtypes_differ():
+    # same values in different widths must hash differently
+    hashes = {
+        dtype: hash_sequence([5, 3, 20], dtype=dtype)
+        for dtype in (pl.UInt8, pl.UInt16, pl.UInt32, pl.UInt64)
+    }
+    assert len(set(hashes.values())) == 4
