@@ -4,13 +4,14 @@ venv:
 	python3 -m venv .venv
 	.venv/bin/pip install -r requirements.txt
 
+# release build by default: the debug build is roughly 17x slower at hashing
 install:
 	unset CONDA_PREFIX && \
-	source .venv/bin/activate && maturin develop
-
-install-release:
-	unset CONDA_PREFIX && \
 	source .venv/bin/activate && maturin develop --release
+
+install-debug:
+	unset CONDA_PREFIX && \
+	source .venv/bin/activate && maturin develop
 
 pre-commit:
 	cargo +nightly fmt --all && cargo clippy --all-features
@@ -24,6 +25,6 @@ test:
 run: install
 	source .venv/bin/activate && python run.py
 
-run-release: install-release
+run-debug: install-debug
 	source .venv/bin/activate && python run.py
 
